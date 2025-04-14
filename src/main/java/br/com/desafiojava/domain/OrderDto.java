@@ -2,16 +2,15 @@ package br.com.desafiojava.domain;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public class OrderDto {
-    private UUID id;
+    private String id;
     private String customerId;
     private BigDecimal totalAmount;
     private LocalDateTime createdAt;
     private OrderStatus status;
 
-    public OrderDto(UUID id, String customerId, BigDecimal totalAmount, LocalDateTime createdAt, OrderStatus status) {
+    public OrderDto(String id, String customerId, BigDecimal totalAmount, LocalDateTime createdAt, OrderStatus status) {
         this.id = id;
         this.customerId = customerId;
         this.totalAmount = totalAmount;
@@ -20,7 +19,7 @@ public class OrderDto {
     }
 
     // Getters
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 

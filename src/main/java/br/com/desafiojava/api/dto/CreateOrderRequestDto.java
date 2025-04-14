@@ -1,23 +1,21 @@
 package br.com.desafiojava.api.dto;
 
-import java.math.BigDecimal;
+import java.util.List;
 
 public class CreateOrderRequestDto {
     private String customerId;
-    private BigDecimal totalAmount;
-    private String idempotencyKey;
+    private List<OrderItemDto> items;
+    private String orderId;
 
-    // Construtor vazio para deserialização JSON
+
     public CreateOrderRequestDto() {}
 
-    // Construtor completo
-    public CreateOrderRequestDto(String customerId, BigDecimal totalAmount, String idempotencyKey) {
+    public CreateOrderRequestDto(String customerId, List<OrderItemDto> items, String orderId) {
         this.customerId = customerId;
-        this.totalAmount = totalAmount;
-        this.idempotencyKey = idempotencyKey;
+        this.items = items;
+        this.orderId = orderId;
     }
 
-    // Getters e Setters
     public String getCustomerId() {
         return customerId;
     }
@@ -26,19 +24,20 @@ public class CreateOrderRequestDto {
         this.customerId = customerId;
     }
 
-    public BigDecimal getTotalAmount() {
-        return totalAmount;
+    public List<OrderItemDto> getItems() {
+        return items;
     }
 
-    public void setTotalAmount(BigDecimal totalAmount) {
-        this.totalAmount = totalAmount;
+    public void setItems(List<OrderItemDto> items) {
+        this.items = items;
     }
 
-    public String getIdempotencyKey() {
-        return idempotencyKey;
+
+    public String getOrderId() {
+        return orderId;
     }
 
-    public void setIdempotencyKey(String idempotencyKey) {
-        this.idempotencyKey = idempotencyKey;
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
     }
 }

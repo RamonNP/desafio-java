@@ -1,16 +1,16 @@
 package br.com.desafiojava.domain;
 
 import jakarta.persistence.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "orders")
 public class Order {
 
     @Id
-    private UUID id;
+    private String id;
 
     @Column(name = "customer_id", nullable = false)
     private String customerId;
@@ -50,13 +50,13 @@ public class Order {
     }
 
     public static class Builder {
-        private UUID id;
+        private String id;
         private String customerId;
         private BigDecimal totalAmount;
         private LocalDateTime createdAt;
         private OrderStatus status;
 
-        public Builder id(UUID id) {
+        public Builder id(String id) {
             this.id = id;
             return this;
         }
@@ -86,7 +86,7 @@ public class Order {
         }
     }
 
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 
