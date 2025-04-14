@@ -19,7 +19,7 @@ public class CreateOrderCommandHandler implements CommandHandler<CreateOrderComm
 
     private final OrderEventPublisher eventPublisher;
     private final RedisTemplate<String, String> redisTemplate;
-    private static final long IDEMPOTENCY_TTL = 24 * 60 * 60; // 24 horas em segundos
+    private static final long IDEMPOTENCY_TTL = 86400; // 24 horas em segundos
 
     public CreateOrderCommandHandler(OrderEventPublisher eventPublisher,
                                      RedisTemplate<String, String> redisTemplate) {

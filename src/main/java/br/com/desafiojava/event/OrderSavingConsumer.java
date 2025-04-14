@@ -5,8 +5,7 @@ import br.com.desafiojava.domain.Order;
 import br.com.desafiojava.domain.OrderItemEntity;
 import br.com.desafiojava.domain.OrderStatus;
 import br.com.desafiojava.repository.OrderWriteRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -14,9 +13,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
+@Slf4j
 public class OrderSavingConsumer {
-
-    private static final Logger logger = LoggerFactory.getLogger(OrderSavingConsumer.class);
     private final OrderWriteRepository repository;
 
     public OrderSavingConsumer(OrderWriteRepository repository) {
@@ -44,7 +42,7 @@ public class OrderSavingConsumer {
                     .items(itemEntities)
                     .build();
             repository.save(order);
-            logger.info("Successfully saved order {}", event.getOrderId());
+            log.info("Successfully saved order {}", event.getOrderId());
 
         } catch (KafkaProcessingException e) {
             throw e;

@@ -1,6 +1,5 @@
 package br.com.desafiojava.query;
 
-import br.com.desafiojava.domain.Order;
 import br.com.desafiojava.domain.OrderDto;
 import br.com.desafiojava.mapper.OrderMapper;
 import br.com.desafiojava.repository.OrderReadRepository;

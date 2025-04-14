@@ -1,7 +1,6 @@
 package br.com.desafiojava.common.exception;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -15,12 +14,10 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @ControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-
-    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
@@ -29,14 +26,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             HttpStatusCode status,
             WebRequest request) {
 
-        logger.warn("Validation error: {}", ex.getMessage());
+        log.warn("Validation error: {}", ex.getMessage());
         List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> FieldError.builder()
                         .field(error.getField())
                         .message(error.getDefaultMessage())
                         .rejectedValue(error.getRejectedValue())
                         .build())
-                .collect(Collectors.toList());
+                .toList();
 
         ApiError apiError = ApiError.builder()
                 .timestamp(LocalDateTime.now())
@@ -52,7 +49,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiError> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
-        logger.warn("Illegal argument error: {}", ex.getMessage());
+        log.warn("Illegal argument error: {}", ex.getMessage());
         ApiError apiError = ApiError.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
@@ -66,7 +63,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ApiError> handleIllegalStateException(IllegalStateException ex, WebRequest request) {
-        logger.warn("Illegal state error: {}", ex.getMessage());
+        log.warn("Illegal state error: {}", ex.getMessage());
         ApiError apiError = ApiError.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.CONFLICT.value())
@@ -80,7 +77,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(KafkaProcessingException.class)
     public ResponseEntity<ApiError> handleKafkaProcessingException(KafkaProcessingException ex, WebRequest request) {
-        logger.error("Kafka processing error: {}", ex.getMessage());
+        log.error("Kafka processing error: {}", ex.getMessage());
         ApiError apiError = ApiError.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -94,7 +91,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleAllExceptions(Exception ex, WebRequest request) {
-        logger.error("Unexpected error: {}", ex.getMessage(), ex);
+        log.error("Unexpected error: {}", ex.getMessage(), ex);
         ApiError apiError = ApiError.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
