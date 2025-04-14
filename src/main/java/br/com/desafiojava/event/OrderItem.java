@@ -10,10 +10,10 @@ public class OrderItem {
     public OrderItem() {
     }
 
-    public OrderItem(String productId, int quantity, BigDecimal price) {
-        this.productId = productId;
-        this.quantity = quantity;
-        this.price = price;
+    private OrderItem(Builder builder) {
+        this.productId = builder.productId;
+        this.quantity = builder.quantity;
+        this.price = builder.price;
     }
 
     public String getProductId() {
@@ -26,5 +26,34 @@ public class OrderItem {
 
     public BigDecimal getPrice() {
         return price;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private String productId;
+        private int quantity;
+        private BigDecimal price;
+
+        public Builder productId(String productId) {
+            this.productId = productId;
+            return this;
+        }
+
+        public Builder quantity(int quantity) {
+            this.quantity = quantity;
+            return this;
+        }
+
+        public Builder price(BigDecimal price) {
+            this.price = price;
+            return this;
+        }
+
+        public OrderItem build() {
+            return new OrderItem(this);
+        }
     }
 }

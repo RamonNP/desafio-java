@@ -1,15 +1,13 @@
 package br.com.desafiojava.query;
 
-import java.util.UUID;
-
 public class FindOrderByIdQuery {
-    private final UUID orderId;
+    private final String orderId;
 
-    public FindOrderByIdQuery(UUID orderId) {
+    public FindOrderByIdQuery(String orderId) {
         this.orderId = orderId;
     }
 
-    public UUID getOrderId() {
+    public String getOrderId() {
         return orderId;
     }
 }

@@ -17,6 +17,6 @@ public class OrderEventPublisher {
     }
 
     public void publishProcessingEvent(OrderProcessingEvent event) {
-        kafkaTemplate.send(ordersToProcessTopic, event.getOrderId().toString(), event);
+        kafkaTemplate.send(ordersToProcessTopic, event.getOrderId(), event);
     }
 }

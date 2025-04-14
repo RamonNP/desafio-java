@@ -4,7 +4,7 @@ import br.com.desafiojava.domain.Order;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
-import java.util.UUID;
+
 
 @Repository
 public class OrderReadRepositoryImpl implements OrderReadRepository {
@@ -16,7 +16,7 @@ public class OrderReadRepositoryImpl implements OrderReadRepository {
     }
 
     @Override
-    public Optional<Order> findById(UUID id) {
+    public Optional<Order> findById(String id) {
         return repository.findById(id);
     }
 }

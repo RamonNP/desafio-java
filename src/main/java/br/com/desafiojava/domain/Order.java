@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "orders")
@@ -25,7 +26,12 @@ public class Order {
     @Column(name = "status", nullable = false)
     private OrderStatus status;
 
-    protected Order() {}
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "order_id")
+    private List<OrderItemEntity> items;
+
+    protected Order() {
+    }
 
     private Order(Builder builder) {
         this.id = builder.id;
@@ -33,6 +39,7 @@ public class Order {
         this.totalAmount = builder.totalAmount;
         this.createdAt = builder.createdAt;
         this.status = builder.status;
+        this.items = builder.items;
         validate();
     }
 
@@ -55,6 +62,7 @@ public class Order {
         private BigDecimal totalAmount;
         private LocalDateTime createdAt;
         private OrderStatus status;
+        private List<OrderItemEntity> items;
 
         public Builder id(String id) {
             this.id = id;
@@ -81,32 +89,62 @@ public class Order {
             return this;
         }
 
+        public Builder items(List<OrderItemEntity> items) {
+            this.items = items;
+            return this;
+        }
+
         public Order build() {
             return new Order(this);
         }
     }
 
+    // Getters e Setters
     public String getId() {
         return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getCustomerId() {
         return customerId;
     }
 
+    public void setCustomerId(String customerId) {
+        this.customerId = customerId;
+    }
+
     public BigDecimal getTotalAmount() {
         return totalAmount;
+    }
+
+    public void setTotalAmount(BigDecimal totalAmount) {
+        this.totalAmount = totalAmount;
     }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public OrderStatus getStatus() {
         return status;
     }
 
-    public void updateStatus(OrderStatus newStatus) {
-        this.status = newStatus;
+    public void setStatus(OrderStatus status) {
+        this.status = status;
+    }
+
+    public List<OrderItemEntity> getItems() {
+        return items;
+    }
+
+    public void setItems(List<OrderItemEntity> items) {
+        this.items = items;
     }
 }
