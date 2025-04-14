@@ -1,8 +1,6 @@
-package br.com.desafiojava.api.mapper;
+package br.com.desafiojava.mapper;
 
-import br.com.desafiojava.api.dto.CreateOrderRequestDto;
-import br.com.desafiojava.api.dto.OrderItemDto;
-import br.com.desafiojava.domain.CreateOrderCommand;
+import br.com.desafiojava.domain.*;
 import br.com.desafiojava.event.OrderItem;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -21,4 +19,6 @@ public interface OrderMapper {
     @Mapping(target = "quantity", source = "quantity")
     @Mapping(target = "price", source = "price")
     OrderItem toEventOrderItem(CreateOrderCommand.OrderItem orderItem);
+
+    OrderDto toDto(Order order);
 }

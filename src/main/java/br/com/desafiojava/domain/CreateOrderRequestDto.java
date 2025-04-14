@@ -1,4 +1,4 @@
-package br.com.desafiojava.api.dto;
+package br.com.desafiojava.domain;
 
 import java.util.List;
 

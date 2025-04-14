@@ -1,7 +1,7 @@
 package br.com.desafiojava.api;
 
-import br.com.desafiojava.api.dto.CreateOrderRequestDto;
-import br.com.desafiojava.api.mapper.OrderMapper;
+import br.com.desafiojava.domain.CreateOrderRequestDto;
+import br.com.desafiojava.mapper.OrderMapper;
 import br.com.desafiojava.application.OrderApplicationService;
 import br.com.desafiojava.common.exception.ApiError;
 import br.com.desafiojava.domain.CreateOrderCommand;
