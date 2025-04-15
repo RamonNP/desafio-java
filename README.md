@@ -53,9 +53,6 @@ json
 }
 
 
-https://github.com/RamonNP/desafio-java/blob/main/desenho/create-order.png
-https://github.com/RamonNP/desafio-java/blob/main/desenho/status-order.png
-
 GET /orders/{id}: Consultar um pedido por ID
 Exemplo: GET /orders/123
 
@@ -64,6 +61,7 @@ Exemplo: GET /orders/123/status
 
 Fluxo do Sistema
 O sistema segue um fluxo assíncrono baseado em eventos com Kafka e CQRS para separação de comandos e consultas. Abaixo está o fluxo principal com diagramas ilustrativos:
+![Minha imagem](desenho/create-order.png)
 Criação de Pedido:
 O cliente envia um POST /orders com os dados do pedido.
 
@@ -89,6 +87,8 @@ O OrderSavingConsumer consome eventos do tópico orders-processed.
 Persiste o pedido no PostgreSQL com status PROCESSED usando o OrderWriteRepository.
 
 Em caso de erro, o evento é enviado para a DLQ (orders-processed-dlq).
+
+![Minha imagem](desenho/status-order.png)
 
 Consulta de Pedido:
 O cliente consulta via GET /orders/{id} ou GET /orders/{id}/status.
