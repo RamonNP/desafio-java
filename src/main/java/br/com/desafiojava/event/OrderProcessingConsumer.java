@@ -1,11 +1,9 @@
 package br.com.desafiojava.event;
 
-import br.com.desafiojava.common.exception.KafkaProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.listener.adapter.ConsumerRecordMetadata;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -19,11 +17,14 @@ public class OrderProcessingConsumer {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final String ordersProcessedTopic;
+    private final String ordersDlqTopic;
 
     public OrderProcessingConsumer(KafkaTemplate<String, Object> kafkaTemplate,
-                                   @Value("${kafka.topics.orders-processed}") String ordersProcessedTopic) {
+                                   @Value("${kafka.topics.orders-processed}") String ordersProcessedTopic,
+                                   @Value("${kafka.topics.orders-to-process-dlq}") String ordersDlqTopic) {
         this.kafkaTemplate = kafkaTemplate;
         this.ordersProcessedTopic = ordersProcessedTopic;
+        this.ordersDlqTopic = ordersDlqTopic;
     }
 
     @KafkaListener(topics = "${kafka.topics.orders-to-process}", groupId = "order-processing-group")
@@ -31,10 +32,12 @@ public class OrderProcessingConsumer {
             @Payload(required = false) OrderProcessingEvent event,
             @Header(KafkaHeaders.RECEIVED_KEY) String key,
             @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-            @Header(KafkaHeaders.OFFSET) long offset,
-            ConsumerRecordMetadata metadata) {
+            @Header(KafkaHeaders.OFFSET) long offset) {
 
         try {
+            if (event == null) {
+                throw new IllegalArgumentException("Received null event");
+            }
 
             BigDecimal totalAmount = event.getItems().stream()
                     .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
@@ -47,26 +50,28 @@ public class OrderProcessingConsumer {
                     .items(event.getItems())
                     .build();
 
-            publishEvent(event, processedEvent);
+            kafkaTemplate.send(ordersProcessedTopic, key, processedEvent);
+            log.info("Successfully published to topic {} with key {}", ordersProcessedTopic, key);
 
-        } catch (KafkaProcessingException e) {
-            log.error("Processing error for order event - Topic: {}, Key: {}, Offset: {}, Error: {}",
-                    topic, key, offset, e.getMessage());
-            throw e;
         } catch (Exception e) {
-            log.error("Unexpected error processing order event - Topic: {}, Key: {}, Offset: {}, Error: {}",
-                    topic, key, offset, e.getMessage(), e);
-            throw new KafkaProcessingException("Unexpected error processing order: " + e.getMessage());
+            log.error("Error processing order event - Topic: {}, Key: {}, Offset: {}, Error: {}",
+                    topic, key, offset, e.getMessage());
+            publishToDlq(event, key, topic, offset, e);
         }
     }
 
-    private void publishEvent(OrderProcessingEvent event, OrderProcessedEvent processedEvent) {
+    private void publishToDlq(OrderProcessingEvent event, String key, String originalTopic, long offset, Exception exception) {
         try {
-            kafkaTemplate.send(ordersProcessedTopic, processedEvent.getOrderId(), processedEvent);
-            log.info("Successfully processed order {} and published to topic {}", event.getOrderId(), ordersProcessedTopic);
-        } catch (Exception e) {
-            log.error("Failed to publish processed event for order {}: {}", event.getOrderId(), e.getMessage());
-            throw new KafkaProcessingException("Failed to publish processed event: " + e.getMessage());
+            DlqMessage dlqMessage = DlqMessage.builder()
+                    .originalEvent(event)
+                    .originalTopic(originalTopic)
+                    .originalOffset(offset)
+                    .errorMessage(exception.getMessage())
+                    .build();
+            kafkaTemplate.send(ordersDlqTopic, key, dlqMessage);
+            log.info("Published to DLQ topic {} with key {}", ordersDlqTopic, key);
+        } catch (Exception ex) {
+            log.error("Failed to publish to DLQ topic {}: {}", ordersDlqTopic, ex.getMessage());
         }
     }
 }
