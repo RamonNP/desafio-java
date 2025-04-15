@@ -1,5 +1,6 @@
 package br.com.desafiojava.event;
 
+import br.com.desafiojava.application.OrderCalculationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +26,9 @@ public class OrderProcessingConsumerTest {
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
 
+    @Mock
+    private OrderCalculationService orderCalculationService;
+
     @InjectMocks
     private OrderProcessingConsumer orderProcessingConsumer;
 
@@ -36,13 +40,15 @@ public class OrderProcessingConsumerTest {
 
     @BeforeEach
     void setUp() {
-        orderProcessingConsumer = new OrderProcessingConsumer(kafkaTemplate, ordersProcessedTopic, ordersDlqTopic);
+        orderProcessingConsumer = new OrderProcessingConsumer(kafkaTemplate, ordersProcessedTopic, ordersDlqTopic, orderCalculationService);
     }
 
     @Test
     void shouldProcessValidOrderAndSendToProcessedTopic() {
         // Arrange
         OrderProcessingEvent event = createValidOrderProcessingEvent();
+        when(orderCalculationService.calculateTotalAmount(event)).thenReturn(new BigDecimal("20"));
+
         CompletableFuture<SendResult<String, Object>> future = mock(CompletableFuture.class);
         when(kafkaTemplate.send(eq(ordersProcessedTopic), eq(key), any(OrderProcessedEvent.class))).thenReturn(future);
 
@@ -50,6 +56,8 @@ public class OrderProcessingConsumerTest {
         orderProcessingConsumer.processOrder(event, key, topic, offset);
 
         // Assert
+        verify(orderCalculationService).calculateTotalAmount(event);
+
         ArgumentCaptor<OrderProcessedEvent> processedEventCaptor = ArgumentCaptor.forClass(OrderProcessedEvent.class);
         verify(kafkaTemplate).send(eq(ordersProcessedTopic), eq(key), processedEventCaptor.capture());
 
@@ -81,6 +89,7 @@ public class OrderProcessingConsumerTest {
         assertEquals(topic, capturedDlq.getOriginalTopic());
         assertEquals(offset, capturedDlq.getOriginalOffset());
 
+        verify(orderCalculationService, never()).calculateTotalAmount(any());
         verify(kafkaTemplate, never()).send(eq(ordersProcessedTopic), eq(key), any());
     }
 
@@ -88,8 +97,8 @@ public class OrderProcessingConsumerTest {
     void shouldSendToDlqWhenProcessingFailsWithException() {
         // Arrange
         OrderProcessingEvent event = createValidOrderProcessingEvent();
-        when(kafkaTemplate.send(eq(ordersProcessedTopic), eq(key), any(OrderProcessedEvent.class)))
-                .thenThrow(new RuntimeException("Kafka error"));
+        when(orderCalculationService.calculateTotalAmount(event)).thenThrow(new RuntimeException("Calculation failed"));
+
         CompletableFuture<SendResult<String, Object>> future = mock(CompletableFuture.class);
         when(kafkaTemplate.send(eq(ordersDlqTopic), eq(key), any(DlqMessage.class))).thenReturn(future);
 
@@ -102,11 +111,12 @@ public class OrderProcessingConsumerTest {
 
         DlqMessage capturedDlq = dlqCaptor.getValue();
         assertEquals(event, capturedDlq.getOriginalEvent());
-        assertTrue(capturedDlq.getErrorMessage().contains("Kafka error"));
+        assertTrue(capturedDlq.getErrorMessage().contains("Calculation failed"));
         assertEquals(topic, capturedDlq.getOriginalTopic());
         assertEquals(offset, capturedDlq.getOriginalOffset());
 
-        verify(kafkaTemplate).send(eq(ordersProcessedTopic), eq(key), any(OrderProcessedEvent.class));
+        verify(orderCalculationService).calculateTotalAmount(event);
+        verify(kafkaTemplate, never()).send(eq(ordersProcessedTopic), eq(key), any(OrderProcessedEvent.class));
     }
 
     private OrderProcessingEvent createValidOrderProcessingEvent() {

@@ -2,10 +2,16 @@ version: "3.9"
 
 services:
   desafio-java:
-    container_name: desafio-java
     image: openjdk:17
-    # Aplicação Java pode rodar fora do Docker, então aqui fica como referência
-
+    deploy:
+      replicas: 5
+      restart_policy:
+        condition: on-failure
+    depends_on:
+      - postgres
+      - kafka
+      - redis
+      - schema-registry
   akhq:
     image: tchiotludo/akhq
     container_name: akhq
