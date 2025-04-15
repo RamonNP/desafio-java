@@ -109,26 +109,7 @@ Sistema B: Consulta pedidos via GET /orders/{id}.
 
 Estrutura do Projeto
 
-desafio-java/
-├── src/
-│   ├── main/
-│   │   ├── java/br/com/desafiojava/
-│   │   │   ├── api/                # Controladores REST
-│   │   │   ├── application/        # Serviços de aplicação
-│   │   │   ├── command/            # Comandos CQRS
-│   │   │   ├── common/exception/   # Tratamento de erros
-│   │   │   ├── config/             # Configurações de Kafka, Redis, DB
-│   │   │   ├── domain/             # Entidades e DTOs
-│   │   │   ├── event/              # Eventos Kafka
-│   │   │   ├── mapper/             # Mapeadores MapStruct
-│   │   │   ├── query/              # Consultas CQRS
-│   │   │   ├── repository/         # Repositórios JPA
-│   │   ├── resources/
-│   │   │   ├── application.properties # Configurações
-├── desenho/                        # Diagramas do fluxo
-├── docker-compose.yml              # Configuração Docker
-├── pom.xml                         # Dependências Maven
-├── LICENSE                         # Licença Apache 2.0
+![Minha imagem](desenho/estrutura.png)
 
 Configurações
 Definidas em src/main/resources/application.properties:
