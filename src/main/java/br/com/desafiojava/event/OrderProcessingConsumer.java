@@ -64,7 +64,7 @@ public class OrderProcessingConsumer {
 
     private void publishToDlq(OrderProcessingEvent event, String key, String originalTopic, long offset, Exception exception) {
         try {
-            DlqMessage dlqMessage = DlqMessage.builder()
+            DlqMessage<Object> dlqMessage = DlqMessage.builder()
                     .originalEvent(event)
                     .originalTopic(originalTopic)
                     .originalOffset(offset)

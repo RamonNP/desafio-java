@@ -22,6 +22,8 @@ import java.util.Optional;
 public class OrderController {
 
     public static final String INVALID_REQUEST = "Invalid Request";
+    public static final String UNEXPECTED_ERROR_OCCURRED = "Unexpected error occurred";
+    public static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
     public static final String ORDERS = "/orders";
     private final OrderApplicationService service;
     private final OrderMapper mapper;
@@ -53,7 +55,7 @@ public class OrderController {
 
         } catch (Exception e) {
             log.error("Unexpected error while creating order: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(buildApiError(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", "Unexpected error occurred", ORDERS));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(buildApiError(HttpStatus.INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR, UNEXPECTED_ERROR_OCCURRED, ORDERS));
         }
     }
 
@@ -62,7 +64,7 @@ public class OrderController {
         try {
             if (id == null) {
                 log.error("Received null order ID");
-                return ResponseEntity.badRequest().body(buildApiError(HttpStatus.BAD_REQUEST, INVALID_REQUEST, "Order ID cannot be null", "/orders/" + id));
+                return ResponseEntity.badRequest().body(buildApiError(HttpStatus.BAD_REQUEST, INVALID_REQUEST, "Order ID cannot be null", ORDERS + id));
             }
             Optional<OrderDto> order = service.findOrderById(id);
             return order.map(ResponseEntity::ok)
@@ -71,7 +73,7 @@ public class OrderController {
         } catch (Exception e) {
             log.error("Unexpected error while retrieving order {}: {}", id, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    buildApiError(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", "Unexpected error occurred", "/orders/" + id)
+                    buildApiError(HttpStatus.INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR, UNEXPECTED_ERROR_OCCURRED, ORDERS + id)
             );
         }
     }
@@ -81,7 +83,7 @@ public class OrderController {
         try {
             if (id == null) {
                 log.error("Received null order ID for status");
-                return ResponseEntity.badRequest().body(buildApiError(HttpStatus.BAD_REQUEST, INVALID_REQUEST, "Order ID cannot be null", "/orders/" + id + "/status"));
+                return ResponseEntity.badRequest().body(buildApiError(HttpStatus.BAD_REQUEST, INVALID_REQUEST, "Order ID cannot be null", ORDERS + id + "/status"));
             }
             Optional<OrderStatusDto> status = service.findOrderStatusById(id);
             return status.map(ResponseEntity::ok)
@@ -89,7 +91,7 @@ public class OrderController {
         } catch (Exception e) {
             log.error("Unexpected error while retrieving order status for {}: {}", id, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    buildApiError(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", "Unexpected error occurred", "/orders/" + id + "/status")
+                    buildApiError(HttpStatus.INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR, UNEXPECTED_ERROR_OCCURRED, ORDERS + id + "/status")
             );
         }
     }

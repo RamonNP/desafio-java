@@ -1,6 +1,5 @@
 package br.com.desafiojava.event;
 
-import br.com.desafiojava.common.exception.KafkaProcessingException;
 import br.com.desafiojava.domain.Order;
 import br.com.desafiojava.domain.OrderItemEntity;
 import br.com.desafiojava.domain.OrderStatus;
@@ -74,7 +73,7 @@ public class OrderSavingConsumer {
 
     private void publishToDlq(OrderProcessedEvent event, String key, String originalTopic, long offset, Exception exception) {
         try {
-            DlqMessage dlqMessage = DlqMessage.builder()
+            DlqMessage<Object> dlqMessage = DlqMessage.builder()
                     .originalEvent(event)
                     .originalTopic(originalTopic)
                     .originalOffset(offset)
