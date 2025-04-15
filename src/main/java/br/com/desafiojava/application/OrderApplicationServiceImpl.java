@@ -4,6 +4,7 @@ import br.com.desafiojava.command.CreateOrderCommandHandler;
 import br.com.desafiojava.common.exception.OrderProcessingException;
 import br.com.desafiojava.domain.CreateOrderCommand;
 import br.com.desafiojava.domain.OrderDto;
+import br.com.desafiojava.domain.OrderStatusDto;
 import br.com.desafiojava.query.FindOrderByIdQuery;
 import br.com.desafiojava.query.FindOrderByIdQueryHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -21,7 +23,7 @@ public class OrderApplicationServiceImpl implements OrderApplicationService {
     private final CreateOrderCommandHandler createHandler;
     private final FindOrderByIdQueryHandler findHandler;
     private final RedisTemplate<String, String> redisTemplate;
-    private final ObjectMapper objectMapper; // Para serialização/desserialização
+    private final ObjectMapper objectMapper;
 
     public OrderApplicationServiceImpl(CreateOrderCommandHandler createHandler,
                                        FindOrderByIdQueryHandler findHandler,
@@ -63,6 +65,35 @@ public class OrderApplicationServiceImpl implements OrderApplicationService {
         } catch (Exception e) {
             log.error("Error retrieving order {}: {}", orderId, e.getMessage(), e);
             throw new OrderProcessingException("Failed to retrieve order: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Optional<OrderStatusDto> findOrderStatusById(String orderId) {
+        try {
+            // Buscar no banco de dados primeiro
+            Optional<OrderDto> order = findHandler.handle(new FindOrderByIdQuery(orderId));
+            if (order.isPresent()) {
+                return Optional.of(OrderStatusDto.builder()
+                        .orderId(orderId)
+                        .status("COMPLETED")
+                        .startDate(order.get().getCreatedAt())
+                        .build());
+            } else {
+                String redisValue = redisTemplate.opsForValue().get(orderId);
+                if (redisValue != null) {
+                    LocalDateTime startDate = LocalDateTime.parse(redisValue);
+                    return Optional.of(OrderStatusDto.builder()
+                            .orderId(orderId)
+                            .status("PROCESSING")
+                            .startDate(startDate)
+                            .build());
+                }
+                return Optional.empty();
+            }
+        } catch (Exception e) {
+            log.error("Error retrieving order status for {}: {}", orderId, e.getMessage(), e);
+            throw new OrderProcessingException("Failed to retrieve order status: " + e.getMessage());
         }
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -33,7 +34,8 @@ public class CreateOrderCommandHandler implements CommandHandler<CreateOrderComm
         try {
             validateCommand(command);
 
-            Boolean keyExists = redisTemplate.opsForValue().setIfAbsent(orderId, "processing", IDEMPOTENCY_TTL, TimeUnit.SECONDS);
+            String startDate = LocalDateTime.now().toString();
+            Boolean keyExists = redisTemplate.opsForValue().setIfAbsent(orderId, startDate, IDEMPOTENCY_TTL, TimeUnit.SECONDS);
             if (keyExists == null || !keyExists) {
                 log.warn("Order {} is already being processed", command.getOrderId());
                 throw new IllegalStateException("Request already being processed: " + command.getOrderId());

@@ -1,5 +1,6 @@
 package br.com.desafiojava.event;
 
+import br.com.desafiojava.application.OrderCalculationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -18,13 +19,16 @@ public class OrderProcessingConsumer {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final String ordersProcessedTopic;
     private final String ordersDlqTopic;
+    private final OrderCalculationService orderCalculationService;
 
     public OrderProcessingConsumer(KafkaTemplate<String, Object> kafkaTemplate,
                                    @Value("${kafka.topics.orders-processed}") String ordersProcessedTopic,
-                                   @Value("${kafka.topics.orders-to-process-dlq}") String ordersDlqTopic) {
+                                   @Value("${kafka.topics.orders-to-process-dlq}") String ordersDlqTopic,
+                                   OrderCalculationService orderCalculationService) {
         this.kafkaTemplate = kafkaTemplate;
         this.ordersProcessedTopic = ordersProcessedTopic;
         this.ordersDlqTopic = ordersDlqTopic;
+        this.orderCalculationService = orderCalculationService;
     }
 
     @KafkaListener(topics = "${kafka.topics.orders-to-process}", groupId = "order-processing-group")
@@ -39,9 +43,7 @@ public class OrderProcessingConsumer {
                 throw new IllegalArgumentException("Received null event");
             }
 
-            BigDecimal totalAmount = event.getItems().stream()
-                    .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal totalAmount = orderCalculationService.calculateTotalAmount(event);
 
             OrderProcessedEvent processedEvent = OrderProcessedEvent.builder()
                     .orderId(event.getOrderId())

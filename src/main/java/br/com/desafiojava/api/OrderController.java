@@ -5,6 +5,7 @@ import br.com.desafiojava.common.exception.ApiError;
 import br.com.desafiojava.domain.CreateOrderCommand;
 import br.com.desafiojava.domain.CreateOrderRequestDto;
 import br.com.desafiojava.domain.OrderDto;
+import br.com.desafiojava.domain.OrderStatusDto;
 import br.com.desafiojava.mapper.OrderMapper;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -71,6 +72,24 @@ public class OrderController {
             log.error("Unexpected error while retrieving order {}: {}", id, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     buildApiError(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", "Unexpected error occurred", "/orders/" + id)
+            );
+        }
+    }
+
+    @GetMapping("/{id}/status")
+    public ResponseEntity<?> getOrderStatus(@PathVariable("id") String id) {
+        try {
+            if (id == null) {
+                log.error("Received null order ID for status");
+                return ResponseEntity.badRequest().body(buildApiError(HttpStatus.BAD_REQUEST, INVALID_REQUEST, "Order ID cannot be null", "/orders/" + id + "/status"));
+            }
+            Optional<OrderStatusDto> status = service.findOrderStatusById(id);
+            return status.map(ResponseEntity::ok)
+                    .orElseGet(() -> ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            log.error("Unexpected error while retrieving order status for {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    buildApiError(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", "Unexpected error occurred", "/orders/" + id + "/status")
             );
         }
     }
